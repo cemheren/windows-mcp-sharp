@@ -302,6 +302,13 @@ public interface IUIAutomationElement
     int CurrentIsRequiredForForm { get; }
     string CurrentItemStatus { get; }
     tagRECT CurrentBoundingRectangle { get; }
+    IUIAutomationElement? CurrentLabeledBy { get; }
+    string CurrentAriaRole { get; }
+    string CurrentAriaProperties { get; }
+    int CurrentIsDataValidForForm { get; }
+    IUIAutomationElementArray? CurrentControllerFor { get; }
+    IUIAutomationElementArray? CurrentDescribedBy { get; }
+    IUIAutomationElementArray? CurrentFlowsTo { get; }
     string CurrentProviderDescription { get; }
     int CachedProcessId { get; }
     int CachedControlType { get; }
@@ -327,6 +334,13 @@ public interface IUIAutomationElement
     int CachedIsRequiredForForm { get; }
     string CachedItemStatus { get; }
     tagRECT CachedBoundingRectangle { get; }
+    IUIAutomationElement? CachedLabeledBy { get; }
+    string CachedAriaRole { get; }
+    string CachedAriaProperties { get; }
+    int CachedIsDataValidForForm { get; }
+    IUIAutomationElementArray? CachedControllerFor { get; }
+    IUIAutomationElementArray? CachedDescribedBy { get; }
+    IUIAutomationElementArray? CachedFlowsTo { get; }
     string CachedProviderDescription { get; }
 
     void GetClickablePoint(out tagPOINT clickable, out int gotClickable);
