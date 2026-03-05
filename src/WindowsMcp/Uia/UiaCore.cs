@@ -58,14 +58,33 @@ public interface IUIAutomation
 
     IUIAutomationElement GetFocusedElement();
 
-    IUIAutomationTreeWalker GetRawViewWalker();
+    // BuildCache variants (must be present to maintain vtable order)
+    void GetRootElementBuildCache(
+        [MarshalAs(UnmanagedType.Interface)] IUIAutomationCacheRequest cacheRequest,
+        [MarshalAs(UnmanagedType.Interface)] out IUIAutomationElement root);
+
+    void ElementFromHandleBuildCache(
+        IntPtr hwnd,
+        [MarshalAs(UnmanagedType.Interface)] IUIAutomationCacheRequest cacheRequest,
+        [MarshalAs(UnmanagedType.Interface)] out IUIAutomationElement element);
+
+    void ElementFromPointBuildCache(
+        tagPOINT pt,
+        [MarshalAs(UnmanagedType.Interface)] IUIAutomationCacheRequest cacheRequest,
+        [MarshalAs(UnmanagedType.Interface)] out IUIAutomationElement element);
+
+    void GetFocusedElementBuildCache(
+        [MarshalAs(UnmanagedType.Interface)] IUIAutomationCacheRequest cacheRequest,
+        [MarshalAs(UnmanagedType.Interface)] out IUIAutomationElement element);
+
+    IUIAutomationTreeWalker CreateTreeWalker(
+        [MarshalAs(UnmanagedType.Interface)] IUIAutomationCondition pCondition);
 
     IUIAutomationTreeWalker GetControlViewWalker();
 
     IUIAutomationTreeWalker GetContentViewWalker();
 
-    IUIAutomationTreeWalker CreateTreeWalker(
-        [MarshalAs(UnmanagedType.Interface)] IUIAutomationCondition pCondition);
+    IUIAutomationTreeWalker GetRawViewWalker();
 
     IUIAutomationCondition GetRawViewCondition();
 
@@ -128,6 +147,14 @@ public interface IUIAutomation
         int eventId,
         [MarshalAs(UnmanagedType.Interface)] IUIAutomationElement element,
         [MarshalAs(UnmanagedType.Interface)] object handler);
+
+    void AddPropertyChangedEventHandlerNativeArray(
+        [MarshalAs(UnmanagedType.Interface)] IUIAutomationElement element,
+        int scope,
+        [MarshalAs(UnmanagedType.Interface)] IUIAutomationCacheRequest cacheRequest,
+        [MarshalAs(UnmanagedType.Interface)] object handler,
+        IntPtr propertyArray,
+        int propertyCount);
 
     void AddPropertyChangedEventHandler(
         [MarshalAs(UnmanagedType.Interface)] IUIAutomationElement element,
