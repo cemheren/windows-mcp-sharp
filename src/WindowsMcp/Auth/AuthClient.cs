@@ -145,7 +145,7 @@ public class AuthClient
         throw lastError!;
     }
 
-    private async Task BackoffAsync(int attempt, CancellationToken cancellationToken)
+    protected virtual async Task BackoffAsync(int attempt, CancellationToken cancellationToken)
     {
         if (attempt < MaxRetries)
         {

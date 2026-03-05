@@ -91,6 +91,14 @@ public class DesktopService
         _tree = new TreeService(this, screenWidth, screenHeight, IsWindowBrowser);
     }
 
+#pragma warning disable CS8618 // Non-nullable field not initialized (test-only constructor)
+    /// <summary>Test-only constructor that skips native interop initialization.</summary>
+    protected DesktopService(string encoding)
+    {
+        _encoding = encoding;
+    }
+#pragma warning restore CS8618
+
     // ──────────────────────────────────────────────
     // SendKeys text escaping
     // ──────────────────────────────────────────────
@@ -361,7 +369,7 @@ public class DesktopService
     // PowerShell Execution
     // ──────────────────────────────────────────────
 
-    public (string Output, int ExitCode) ExecuteCommand(string command, int timeout = 10)
+    public virtual (string Output, int ExitCode) ExecuteCommand(string command, int timeout = 10)
     {
         try
         {
