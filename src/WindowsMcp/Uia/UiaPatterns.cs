@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 
 namespace WindowsMcp.Uia;
@@ -525,7 +526,7 @@ public class ScrollPattern
     public bool Scroll(int horizontalAmount, int verticalAmount, int waitTimeMs = PatternConstants.OperationWaitTimeMs)
     {
         try { _pattern.Scroll(horizontalAmount, verticalAmount); }
-        catch { return false; }
+        catch (Exception ex) { Trace.TraceError($"ScrollPattern.Scroll failed: {ex.Message}"); return false; }
         Thread.Sleep(waitTimeMs);
         return true;
     }
@@ -538,7 +539,7 @@ public class ScrollPattern
     public bool SetScrollPercent(double horizontalPercent, double verticalPercent, int waitTimeMs = PatternConstants.OperationWaitTimeMs)
     {
         try { _pattern.SetScrollPercent(horizontalPercent, verticalPercent); }
-        catch { return false; }
+        catch (Exception ex) { Trace.TraceError($"ScrollPattern.SetScrollPercent failed: {ex.Message}"); return false; }
         Thread.Sleep(waitTimeMs);
         return true;
     }
