@@ -1335,7 +1335,24 @@ public class DesktopService
             canvas.DrawText(label, lx1 + 2, ly2 - 2, font, textPaint);
         }
 
+
+        // Save debug screenshot to disk
+        try
+        {
+            var debugPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "mcp_debug_screenshot.png");
+            using var image = SKImage.FromBitmap(padded);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            using var stream = File.OpenWrite(debugPath);
+            data.SaveTo(stream);
+            Trace.TraceInformation($"Debug screenshot saved to {debugPath}");
+        }
+        catch (Exception ex)
+        {
+            Trace.TraceError($"Failed to save debug screenshot: {ex.Message}");
+        }
+
         screenshot.Dispose();
+
         return padded;
     }
 
