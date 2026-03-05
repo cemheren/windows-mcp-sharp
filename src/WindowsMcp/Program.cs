@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using WindowsMcp.Analytics;
 using WindowsMcp.Auth;
 using WindowsMcp.Desktop;
 using WindowsMcp.FileSystem;
@@ -48,7 +47,6 @@ public static class ServerState
 {
     public static DesktopService? Desktop { get; set; }
     public static WatchDog? WatchDog { get; set; }
-    public static IAnalytics? Analytics { get; set; }
     public static Size? ScreenSize { get; set; }
 
     public const int MaxImageWidth = 1920;
@@ -64,7 +62,7 @@ public static class ServerState
 #region Lifespan Service
 
 /// <summary>
-/// Manages MCP server lifecycle: initialises Desktop, WatchDog, Analytics on start and cleans up on stop.
+/// Manages MCP server lifecycle: initialises Desktop and WatchDog on start and cleans up on stop.
 /// </summary>
 public sealed class McpLifetimeService : IHostedService
 {
@@ -80,21 +78,6 @@ public sealed class McpLifetimeService : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Initialising Windows MCP server...");
-
-        var telemetry = Environment.GetEnvironmentVariable("ANONYMIZED_TELEMETRY") ?? "true";
-        if (!string.Equals(telemetry, "false", StringComparison.OrdinalIgnoreCase))
-        {
-            try
-            {
-                var httpClient = _services.GetRequiredService<HttpClient>();
-                var analyticsLogger = _services.GetRequiredService<ILogger<PostHogAnalytics>>();
-                ServerState.Analytics = new PostHogAnalytics(httpClient, analyticsLogger);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to initialise analytics; continuing without telemetry");
-            }
-        }
 
         ServerState.Desktop = new DesktopService();
         ServerState.WatchDog = new WatchDog();
@@ -114,8 +97,7 @@ public sealed class McpLifetimeService : IHostedService
         _logger.LogInformation("Shutting down Windows MCP server...");
         ServerState.WatchDog?.Stop();
         ServerState.WatchDog?.Dispose();
-        if (ServerState.Analytics is IAsyncDisposable disposable)
-            await disposable.DisposeAsync();
+        await Task.CompletedTask;
     }
 }
 
