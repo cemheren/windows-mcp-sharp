@@ -495,27 +495,27 @@ public class ScrollPattern
 {
     public const double NoScrollValue = -1;
 
-    private readonly dynamic _pattern;
+    private readonly IUIAutomationScrollPattern _pattern;
 
-    public ScrollPattern(object pattern) => _pattern = pattern;
+    public ScrollPattern(object pattern) => _pattern = (IUIAutomationScrollPattern)pattern;
 
     /// <summary>Indicates whether the element can scroll horizontally.</summary>
-    public bool HorizontallyScrollable => (bool)_pattern.CurrentHorizontallyScrollable;
+    public bool HorizontallyScrollable => _pattern.CurrentHorizontallyScrollable != 0;
 
     /// <summary>The horizontal scroll position.</summary>
-    public double HorizontalScrollPercent => (double)_pattern.CurrentHorizontalScrollPercent;
+    public double HorizontalScrollPercent => _pattern.CurrentHorizontalScrollPercent;
 
     /// <summary>The horizontal size of the viewable region of a scrollable element.</summary>
-    public double HorizontalViewSize => (double)_pattern.CurrentHorizontalViewSize;
+    public double HorizontalViewSize => _pattern.CurrentHorizontalViewSize;
 
     /// <summary>Indicates whether the element can scroll vertically.</summary>
-    public bool VerticallyScrollable => (bool)_pattern.CurrentVerticallyScrollable;
+    public bool VerticallyScrollable => _pattern.CurrentVerticallyScrollable != 0;
 
     /// <summary>The vertical scroll position.</summary>
-    public double VerticalScrollPercent => (double)_pattern.CurrentVerticalScrollPercent;
+    public double VerticalScrollPercent => _pattern.CurrentVerticalScrollPercent;
 
     /// <summary>The vertical size of the viewable region of a scrollable element.</summary>
-    public double VerticalViewSize => (double)_pattern.CurrentVerticalViewSize;
+    public double VerticalViewSize => _pattern.CurrentVerticalViewSize;
 
     /// <summary>
     /// Call IUIAutomationScrollPattern::Scroll.
@@ -524,9 +524,10 @@ public class ScrollPattern
     /// </summary>
     public bool Scroll(int horizontalAmount, int verticalAmount, int waitTimeMs = PatternConstants.OperationWaitTimeMs)
     {
-        bool ret = (int)_pattern.Scroll(horizontalAmount, verticalAmount) == PatternConstants.S_OK;
+        try { _pattern.Scroll(horizontalAmount, verticalAmount); }
+        catch { return false; }
         Thread.Sleep(waitTimeMs);
-        return ret;
+        return true;
     }
 
     /// <summary>
@@ -536,9 +537,10 @@ public class ScrollPattern
     /// </summary>
     public bool SetScrollPercent(double horizontalPercent, double verticalPercent, int waitTimeMs = PatternConstants.OperationWaitTimeMs)
     {
-        bool ret = (int)_pattern.SetScrollPercent(horizontalPercent, verticalPercent) == PatternConstants.S_OK;
+        try { _pattern.SetScrollPercent(horizontalPercent, verticalPercent); }
+        catch { return false; }
         Thread.Sleep(waitTimeMs);
-        return ret;
+        return true;
     }
 }
 

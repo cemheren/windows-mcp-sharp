@@ -376,6 +376,27 @@ public interface IUIAutomationCacheRequest
 }
 
 [ComImport]
+[Guid("88f4d42a-e881-459d-a77c-73bbbb7e02dc")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IUIAutomationScrollPattern
+{
+    void Scroll(int horizontalAmount, int verticalAmount);
+    void SetScrollPercent(double horizontalPercent, double verticalPercent);
+    double CurrentHorizontalScrollPercent { get; }
+    double CurrentVerticalScrollPercent { get; }
+    double CurrentHorizontalViewSize { get; }
+    double CurrentVerticalViewSize { get; }
+    int CurrentHorizontallyScrollable { get; }
+    int CurrentVerticallyScrollable { get; }
+    double CachedHorizontalScrollPercent { get; }
+    double CachedVerticalScrollPercent { get; }
+    double CachedHorizontalViewSize { get; }
+    double CachedVerticalViewSize { get; }
+    int CachedHorizontallyScrollable { get; }
+    int CachedVerticallyScrollable { get; }
+}
+
+[ComImport]
 [Guid("4042c624-389c-4afc-a630-9df854a541fc")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 public interface IUIAutomationTreeWalker
