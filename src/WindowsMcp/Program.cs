@@ -760,7 +760,7 @@ public static class Program
             throw new InvalidOperationException("API_KEY is required for MODE: remote");
 
         using var httpClient = new HttpClient();
-        using var loggerFactory = LoggerFactory.Create(b => b.AddConsole());
+        using var loggerFactory = LoggerFactory.Create(b => b.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace));
         var authLogger = loggerFactory.CreateLogger<AuthClient>();
         var client = new AuthClient(config.ApiKey, config.SandboxId, httpClient, authLogger);
         await client.AuthenticateAsync(CancellationToken.None);

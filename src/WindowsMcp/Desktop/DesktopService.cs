@@ -38,7 +38,7 @@ file static class KeyAliases
 public class DesktopService
 {
     private static readonly ILogger<DesktopService> Logger =
-        LoggerFactory.Create(b => b.AddConsole()).CreateLogger<DesktopService>();
+        LoggerFactory.Create(b => b.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace)).CreateLogger<DesktopService>();
 
     private static readonly HttpClient SharedHttpClient = new() { Timeout = TimeSpan.FromSeconds(10) };
     private static readonly Random Rng = new();

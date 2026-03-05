@@ -12,7 +12,7 @@ namespace WindowsMcp.Tree;
 public class TreeService
 {
     private static readonly ILogger Logger = LoggerFactory
-        .Create(b => b.AddConsole())
+        .Create(b => b.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace))
         .CreateLogger<TreeService>();
 
     private static readonly HashSet<string> AlwaysKeyboardFocusableTypes =

@@ -431,7 +431,7 @@ internal sealed class InternalManagerAdapterWin10 : IInternalManagerAdapter
 public sealed class VirtualDesktopManager
 {
     private static readonly ILogger Logger = LoggerFactory
-        .Create(builder => builder.AddConsole())
+        .Create(builder => builder.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace))
         .CreateLogger<VirtualDesktopManager>();
 
     private static readonly ThreadLocal<VirtualDesktopManager> _threadLocal = new(() => new VirtualDesktopManager());
