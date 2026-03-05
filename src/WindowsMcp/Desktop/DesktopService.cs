@@ -1245,14 +1245,38 @@ public class DesktopService
 
     public SKBitmap GetScreenshot()
     {
-        // TODO: Implement screen capture via P/Invoke (BitBlt / PrintWindow).
-        // On Windows, use GDI BitBlt to capture the virtual screen.
-        // Placeholder returns a 1x1 bitmap; replace with actual capture logic.
-        var (width, height) = UiaHelpers.GetVirtualScreenSize();
+        var (left, top, width, height) = UiaHelpers.GetVirtualScreenRect();
         if (width <= 0) width = 1920;
         if (height <= 0) height = 1080;
-        var bitmap = new SKBitmap(width, height);
-        // TODO: Fill bitmap with actual screen pixels using GDI BitBlt
+
+        IntPtr screenDc = Win32.GetDC(IntPtr.Zero);
+        IntPtr memDc = Win32.CreateCompatibleDC(screenDc);
+        IntPtr hBitmap = Win32.CreateCompatibleBitmap(screenDc, width, height);
+        IntPtr oldBitmap = Win32.SelectObject(memDc, hBitmap);
+
+        Win32.BitBlt(memDc, 0, 0, width, height, screenDc, left, top, Win32.SRCCOPY);
+
+        Win32.SelectObject(memDc, oldBitmap);
+
+        var bmi = new BITMAPINFOHEADER
+        {
+            biSize = (uint)Marshal.SizeOf<BITMAPINFOHEADER>(),
+            biWidth = width,
+            biHeight = -height, // negative = top-down DIB
+            biPlanes = 1,
+            biBitCount = 32,
+            biCompression = 0, // BI_RGB
+        };
+
+        var bitmap = new SKBitmap(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+        var pixelPtr = bitmap.GetPixels();
+
+        Win32.GetDIBits(screenDc, hBitmap, 0, (uint)height, pixelPtr, ref bmi, 0);
+
+        Win32.DeleteObject(hBitmap);
+        Win32.DeleteDC(memDc);
+        Win32.ReleaseDC(IntPtr.Zero, screenDc);
+
         return bitmap;
     }
 

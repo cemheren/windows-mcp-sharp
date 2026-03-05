@@ -4,6 +4,8 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using ModelContextProtocol;
+using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using WindowsMcp.Analytics;
 using WindowsMcp.Auth;
@@ -172,7 +174,7 @@ public static class DesktopTools
         Idempotent = true,
         OpenWorld = false)]
     [Description("Captures complete desktop state including: system language, focused/opened windows, interactive elements (buttons, text fields, links, menus with coordinates), and scrollable areas. Set useVision=true to include screenshot. Set useDom=true for browser content. Always call this first to understand the current desktop state before taking actions.")]
-    public static string Snapshot(
+    public static IList<ContentBlock> Snapshot(
         [Description("Include a screenshot of the desktop")] bool useVision = false,
         [Description("Use DOM content for browser windows")] bool useDom = false)
     {
@@ -188,10 +190,10 @@ public static class DesktopTools
             var scale = Math.Min(scaleWidth, scaleHeight);
 
             var state = desktop.GetState(
-                useAnnotation: false,
+                useAnnotation: useVision,
                 useVision: useVision,
                 useDom: useDom,
-                asBytes: false,
+                asBytes: true,
                 scale: scale);
 
             var interactiveElements = state.TreeState?.InteractiveElementsToString() ?? string.Empty;
@@ -201,9 +203,7 @@ public static class DesktopTools
             var activeDesktop = state.ActiveDesktopToString();
             var allDesktops = state.DesktopsToString();
 
-            // TODO: Return screenshot as image content when useVision is true
-
-            return $"""
+            var textContent = $"""
                 Active Desktop:
                 {activeDesktop}
 
@@ -222,10 +222,19 @@ public static class DesktopTools
                 List of Scrollable Elements:
                 {(string.IsNullOrEmpty(scrollableElements) ? "No scrollable elements found." : scrollableElements)}
                 """;
+
+            var result = new List<ContentBlock> { new TextContentBlock { Text = textContent } };
+
+            if (useVision && state.Screenshot is { Length: > 0 })
+            {
+                result.Add(ImageContentBlock.FromBytes(state.Screenshot, "image/png"));
+            }
+
+            return result;
         }
         catch (Exception e)
         {
-            return $"Error capturing desktop state: {e.Message}. Please try again.";
+            return [new TextContentBlock { Text = $"Error capturing desktop state: {e.Message}. Please try again." }];
         }
     }
 

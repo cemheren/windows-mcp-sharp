@@ -116,7 +116,7 @@ public class TreeStateTests
         var node = TestFixtures.CreateSampleTreeElementNode();
         var ts = new TreeState { InteractiveNodes = [node] };
         var result = ts.InteractiveElementsToString();
-        var lines = result.Split('\n');
+        var lines = result.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
         Assert.Equal("# id|window|control_type|name|coords|focus", lines[0]);
         Assert.Equal("0|Notepad|Button|OK|(200,100)|True", lines[1]);
     }
@@ -135,7 +135,7 @@ public class TreeStateTests
         };
         var ts = new TreeState { InteractiveNodes = [node1, node2] };
         var result = ts.InteractiveElementsToString();
-        var lines = result.Split('\n');
+        var lines = result.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
         Assert.StartsWith("0|", lines[1]);
         Assert.StartsWith("1|", lines[2]);
     }
@@ -158,7 +158,7 @@ public class TreeStateTests
             ScrollableNodes = [scrollable],
         };
         var result = ts.ScrollableElementsToString();
-        var lines = result.Split('\n');
+        var lines = result.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
         Assert.Equal("# id|window|control_type|name|coords|h_scroll|h_pct|v_scroll|v_pct|focus", lines[0]);
         // base_index = len(interactive_nodes) = 1
         Assert.StartsWith("1|", lines[1]);
@@ -179,7 +179,7 @@ public class TreeStateTests
             ScrollableNodes = [scrollable],
         };
         var result = ts.ScrollableElementsToString();
-        var lines = result.Split('\n');
+        var lines = result.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
         // base_index = 3 (three interactive nodes)
         Assert.StartsWith("3|", lines[1]);
     }

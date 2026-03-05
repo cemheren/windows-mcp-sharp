@@ -411,6 +411,22 @@ public struct tagRECT
 }
 
 [StructLayout(LayoutKind.Sequential)]
+public struct BITMAPINFOHEADER
+{
+    public uint biSize;
+    public int biWidth;
+    public int biHeight;
+    public ushort biPlanes;
+    public ushort biBitCount;
+    public uint biCompression;
+    public uint biSizeImage;
+    public int biXPelsPerMeter;
+    public int biYPelsPerMeter;
+    public uint biClrUsed;
+    public uint biClrImportant;
+}
+
+[StructLayout(LayoutKind.Sequential)]
 public struct MOUSEINPUT
 {
     public int dx;
@@ -780,7 +796,31 @@ public static class Win32
     public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
 
     [DllImport("gdi32.dll")]
+    public static extern IntPtr CreateCompatibleBitmap(IntPtr hdc, int nWidth, int nHeight);
+
+    [DllImport("gdi32.dll")]
     public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
+
+    [DllImport("gdi32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool BitBlt(
+        IntPtr hdcDest, int xDest, int yDest, int wDest, int hDest,
+        IntPtr hdcSrc, int xSrc, int ySrc, uint rop);
+
+    [DllImport("gdi32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool DeleteObject(IntPtr hObject);
+
+    [DllImport("gdi32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool DeleteDC(IntPtr hdc);
+
+    [DllImport("gdi32.dll")]
+    public static extern int GetDIBits(
+        IntPtr hdc, IntPtr hbmp, uint uStartScan, uint cScanLines,
+        IntPtr lpvBits, ref BITMAPINFOHEADER lpbi, uint uUsage);
+
+    public const uint SRCCOPY = 0x00CC0020;
 
     [DllImport("kernel32.dll")]
     public static extern IntPtr GetConsoleWindow();
