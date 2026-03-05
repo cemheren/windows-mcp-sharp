@@ -720,6 +720,8 @@ public static class Program
     private static async Task RunLocalServer(string transport, string host, int port)
     {
         var builder = Host.CreateApplicationBuilder();
+        builder.Logging.ClearProviders();
+        builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
         builder.Services.AddSingleton<HttpClient>();
         builder.Services.AddHostedService<McpLifetimeService>();
 
