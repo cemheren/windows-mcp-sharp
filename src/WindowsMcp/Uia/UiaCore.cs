@@ -369,10 +369,10 @@ public interface IUIAutomationCacheRequest
 {
     void AddProperty(int propertyId);
     void AddPattern(int patternId);
+    IUIAutomationCacheRequest Clone();
     int TreeScope { get; set; }
     IUIAutomationCondition TreeFilter { get; set; }
     int AutomationElementMode { get; set; }
-    IUIAutomationCacheRequest Clone();
 }
 
 [ComImport]
