@@ -10,6 +10,8 @@ using ModelContextProtocol.Server;
 using WindowsMcp.Auth;
 using WindowsMcp.Desktop;
 using WindowsMcp.FileSystem;
+using WindowsMcp.Hints;
+using WindowsMcp.Uia;
 using WindowsMcp.Watchdog;
 
 namespace WindowsMcp;
@@ -66,10 +68,10 @@ public static class ServerState
 /// </summary>
 public sealed class McpLifetimeService : IHostedService
 {
-    private readonly ILogger<McpLifetimeService> _logger;
-    private readonly IServiceProvider _services;
+    private readonly ILogger<McpLifetimeService>? _logger;
+    private readonly IServiceProvider? _services;
 
-    public McpLifetimeService(IServiceProvider services, ILogger<McpLifetimeService> logger)
+    public McpLifetimeService(IServiceProvider? services, ILogger<McpLifetimeService>? logger)
     {
         _services = services;
         _logger = logger;
@@ -77,7 +79,7 @@ public sealed class McpLifetimeService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Initialising Windows MCP server...");
+        _logger?.LogInformation("Initialising Windows MCP server...");
 
         ServerState.Desktop = new DesktopService();
         ServerState.WatchDog = new WatchDog();
@@ -89,12 +91,12 @@ public sealed class McpLifetimeService : IHostedService
         ServerState.WatchDog.Start();
         await Task.Delay(1000, cancellationToken);
 
-        _logger.LogInformation("Windows MCP server initialised (screen {Size})", ServerState.ScreenSize);
+        _logger?.LogInformation("Windows MCP server initialised (screen {Size})", ServerState.ScreenSize);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Shutting down Windows MCP server...");
+        _logger?.LogInformation("Shutting down Windows MCP server...");
         ServerState.WatchDog?.Stop();
         ServerState.WatchDog?.Dispose();
         await Task.CompletedTask;
@@ -149,6 +151,28 @@ public static class DesktopTools
         }
     }
 
+    [McpServerTool(Name = "WindowHandles",
+        Title = "WindowHandles",
+        ReadOnly = true,
+        Destructive = false,
+        Idempotent = true,
+        OpenWorld = false)]
+    [Description("Gets a list of window handles you can use.")]
+    public static string WindowHandles()
+    {
+        var windowHandles = HintService.GetVisibleWindowHandles();
+        var lines = new List<string> { "# handle|title" };
+        foreach (var hwnd in windowHandles)
+        {
+            var title = UiaHelpers.GetWindowText(hwnd);
+            if (!string.IsNullOrWhiteSpace(title))
+            { 
+                lines.Add($"{hwnd.ToInt64()}|{title}");
+            }
+        }
+        return string.Join("\n", lines);
+    }
+
     [McpServerTool(Name = "Snapshot",
         Title = "Snapshot",
         ReadOnly = true,
@@ -158,6 +182,7 @@ public static class DesktopTools
     [Description("Captures complete desktop state including: system language, focused/opened windows, interactive elements (buttons, text fields, links, menus with coordinates), and scrollable areas. Set useVision=true to include screenshot. Set useDom=true for browser content. Always call this first to understand the current desktop state before taking actions.")]
     public static IList<ContentBlock> Snapshot(
         [Description("Include a screenshot of the desktop")] bool useVision = false,
+        [Description("Specificly request a hints and screenshot for a window. Advised to use this to reduce search space when taking action.")] int? windowHandle = -1,
         [Description("Use DOM content for browser windows")] bool useDom = false)
     {
         try
@@ -178,34 +203,31 @@ public static class DesktopTools
                 asBytes: true,
                 scale: scale);
 
-            var interactiveElements = state.TreeState?.InteractiveElementsToString() ?? string.Empty;
-            var scrollableElements = state.TreeState?.ScrollableElementsToString() ?? string.Empty;
-            var windows = state.WindowsToString();
-            var activeWindow = state.ActiveWindowToString();
-            var activeDesktop = state.ActiveDesktopToString();
-            var allDesktops = state.DesktopsToString();
+            List<HintElement> hints;
 
-            var textContent = $"""
-                Active Desktop:
-                {activeDesktop}
+            try
+            {
+                var hintService = new HintService();
 
-                All Desktops:
-                {allDesktops}
+                if (windowHandle.HasValue && windowHandle.Value > 0)
+                {
+                    hints = hintService.EnumWindowHints(new IntPtr(windowHandle.Value));
+                }
+                else
+                {
+                    hints = hintService.EnumAllHints();
+                }
 
-                Focused Window:
-                {activeWindow}
+                // Assign numeric labels
+                for (int i = 0; i < hints.Count; i++)
+                    hints[i] = hints[i] with { Label = i.ToString() };
+            }
+            catch (Exception e)
+            {
+                return [new TextContentBlock { Text = $"Error enumerating hints: {e.Message}" }];
+            }
 
-                Opened Windows:
-                {windows}
-
-                List of Interactive Elements:
-                {(string.IsNullOrEmpty(interactiveElements) ? "No interactive elements found." : interactiveElements)}
-
-                List of Scrollable Elements:
-                {(string.IsNullOrEmpty(scrollableElements) ? "No scrollable elements found." : scrollableElements)}
-                """;
-
-            var result = new List<ContentBlock> { new TextContentBlock { Text = textContent } };
+            var result = new List<ContentBlock> { new TextContentBlock { Text = HintService.FormatHints(hints) } };
 
             if (useVision && state.Screenshot is { Length: > 0 })
             {
@@ -252,12 +274,13 @@ public static class DesktopTools
         [Description("Text to type")] string text,
         [Description("Clear existing text first")] bool clear = false,
         [Description("Caret position: start, idle, or end")] string caretPosition = "idle",
+        [Description("Make a mouse click at the position first to get the caret set")] bool clickFirst = false,
         [Description("Press Enter after typing")] bool pressEnter = false)
     {
         if (loc.Length != 2)
             throw new ArgumentException("Location must be a list of exactly 2 integers [x, y]");
         int x = loc[0], y = loc[1];
-        ServerState.Desktop!.Type((x, y), text, caretPosition, clear, pressEnter);
+        ServerState.Desktop!.Type((x, y), clickFirst, text, caretPosition, clear, pressEnter);
         return $"Typed {text} at ({x},{y}).";
     }
 

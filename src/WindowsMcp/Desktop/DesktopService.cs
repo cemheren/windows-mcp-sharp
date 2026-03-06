@@ -126,11 +126,11 @@ public class DesktopService
     // ──────────────────────────────────────────────
 
     public DesktopState GetState(
-        bool useAnnotation = true,
-        bool useVision = false,
-        bool useDom = false,
-        bool asBytes = false,
-        float scale = 1.0f)
+        bool useAnnotation,
+        bool useVision,
+        bool useDom,
+        bool asBytes,
+        float scale)
     {
         var startTime = Stopwatch.GetTimestamp();
 
@@ -605,7 +605,10 @@ public class DesktopService
         try
         {
             if (CurrentDesktopState is null || CurrentDesktopState.Windows.Count == 0)
-                GetState();
+            {
+                GetState(true, false, false, false, 1.0f);
+            }
+
             if (CurrentDesktopState is null)
                 return ("Failed to get desktop state. Please try again.", 1);
 
@@ -769,12 +772,16 @@ public class DesktopService
 
     public void Type(
         (int X, int Y) loc,
+        bool clickFirst,
         string text,
         string caretPosition = "idle",
         bool clear = false,
         bool pressEnter = false)
     {
-        UiaHelpers.Click(loc.X, loc.Y);
+        if (clickFirst)
+        {
+            UiaHelpers.Click(loc.X, loc.Y);
+        }
 
         if (caretPosition == "start")
             UiaHelpers.SendKeys("{Home}", waitTime: 0.05);
@@ -899,7 +906,7 @@ public class DesktopService
     public void MultiEdit(List<(int X, int Y, string Text)> locs)
     {
         foreach (var (x, y, text) in locs)
-            Type((x, y), text: text, clear: true);
+            Type((x, y), clickFirst: true, text: text, clear: true);
     }
 
     // ──────────────────────────────────────────────
@@ -1093,7 +1100,7 @@ public class DesktopService
                 if (IsOverlayWindow(child))
                     continue;
 
-                if (child is WindowControl or PaneControl)
+                if (child.ControlTypeName == "WindowControl" || child.ControlTypeName == "PaneControl")
                 {
                     var windowPattern = child.GetPatternObject(PatternId.WindowPattern);
                     if (windowPattern is null)

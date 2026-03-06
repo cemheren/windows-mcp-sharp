@@ -111,8 +111,7 @@ public class TreeService
             windowsHandles = [.. otherWindowsHandles];
         }
 
-        var (interactiveNodes, scrollableNodes, domInformativeNodes) =
-            GetWindowWiseNodes(windowsHandles, activeWindowFlag, useDom);
+        var (interactiveNodes, scrollableNodes, domInformativeNodes) = GetWindowWiseNodes(windowsHandles, activeWindowFlag, useDom);
 
         var rootNode = new TreeElementNode
         {
